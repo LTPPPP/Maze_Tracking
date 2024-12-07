@@ -12,7 +12,7 @@ public class Player {
     private Map_Maze mazePanel;
     private Queue<Point> path = new LinkedList<>();
     private List<Point> visitedPath = new ArrayList<>();
-    private static final int MOVE_DELAY = 10;
+    private static final int MOVE_DELAY = 100;
     private Timer moveTimer;
 
     public static float startTime ;

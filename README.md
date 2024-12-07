@@ -2,11 +2,20 @@
 
 ## Overview
 
-Maze Tracking is a Java-based game where players navigate through a maze to reach the end goal. The game will auto find the shortest way to solve the maze.
+Maze Tracking is a Java-based game where players can input a maze configuration, and the game will auto-generate the maze and find the fastest way to solve it.
 
 ## Features
 
-- Auto solve the maze
+- Auto-generate maze from input
+- Auto-solve the maze using the fastest path
+- User-friendly interface
+- Real-time maze solving visualization
+
+## Tech Stack
+
+- ![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=java&logoColor=white): Core programming language used for game logic and functionality.
+- ![JavaFX](https://img.shields.io/badge/JavaFX-007396?style=for-the-badge&logo=java&logoColor=white): Used for creating the graphical user interface.
+- ![JUnit](https://img.shields.io/badge/JUnit-25A162?style=for-the-badge&logo=junit5&logoColor=white): For unit testing the game logic.
 
 ## Installation
 
@@ -30,7 +39,8 @@ Maze Tracking is a Java-based game where players navigate through a maze to reac
 
 ## How to Play
 
-- Just run the class Maze_Tracking and watch
+1. Input your maze configuration.
+2. Watch as the game auto-generates the maze and finds the fastest solution.
 
 ## Contributing
 
@@ -55,4 +65,4 @@ This project is licensed under the MIT License. See the [License](License) file 
 
 ## Contact
 
-For any inquiries or feedback, please contact [LTPPPP](lamphat279@gmail.com).
+For any inquiries or feedback, please contact [LTPPPP](mailto:lamphat279@gmail.com).
