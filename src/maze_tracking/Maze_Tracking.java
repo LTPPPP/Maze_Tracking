@@ -8,7 +8,7 @@ public class Maze_Tracking {
         JFrame frame = new JFrame("Maze Tracking");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        Map_Maze mazeMap = new Map_Maze("src/img/map.png");
+        Map_Maze mazeMap = new Map_Maze("src/img/map2.png");
 
         Player player = new Player(mazeMap);
         mazeMap.setPlayer(player);

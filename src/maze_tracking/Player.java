@@ -17,13 +17,13 @@ public class Player {
     private Point currentPosition;
     private BufferedImage maze;
     private Map_Maze mazePanel;
-    private static final Color PLAYER_COLOR = new Color(128, 0, 128); // Purple color
+    private static final Color PLAYER_COLOR = new Color(128, 0, 128); 
 
     // Movement and colors
-    private static final int MOVE_DELAY = 100; // milliseconds between moves
+    private static final int MOVE_DELAY = 100;
     private Timer moveTimer;
-    private Queue<Point> path = new LinkedList<>(); // Store the path to the goal
-    private List<Point> visitedPath = new LinkedList<>(); // Store the visited points
+    private Queue<Point> path = new LinkedList<>(); 
+    private List<Point> visitedPath = new LinkedList<>(); 
     private static final int BLACK = -16777216;
     private static final int WHITE = -1;
     private static final int GREEN = -5708259;
