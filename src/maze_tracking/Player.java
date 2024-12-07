@@ -1,75 +1,53 @@
 package maze_tracking;
 
-import java.awt.Color;
 import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
+
 import javax.swing.Timer;
 
 public class Player {
+
     private Point currentPosition;
-    private BufferedImage maze;
+    private Point goalPosition;
     private Map_Maze mazePanel;
-    private static final Color PLAYER_COLOR = new Color(128, 0, 128); 
-
-    // Movement and colors
-    private static final int MOVE_DELAY = 100;
+    private Queue<Point> path = new LinkedList<>();
+    private List<Point> visitedPath = new ArrayList<>();
+    private static final int MOVE_DELAY = 10;
     private Timer moveTimer;
-    private Queue<Point> path = new LinkedList<>(); 
-    private List<Point> visitedPath = new LinkedList<>(); 
-    private static final int BLACK = -16777216;
-    private static final int WHITE = -1;
-    private static final int GREEN = -5708259;
-    private static final int RED = -1237980;
 
+    public static float startTime ;
+    public static float endTime ;
     public Player(Map_Maze mazePanel) {
         this.mazePanel = mazePanel;
-        this.maze = mazePanel.getImage();
-        findStartingPosition();
-    }
-
-    private void findStartingPosition() {
-        for (int x = 0; x < maze.getWidth(); x++) {
-            for (int y = 0; y < maze.getHeight(); y++) {
-                if (maze.getRGB(x, y) == GREEN) {
-                    currentPosition = new Point(x, y);
-                    return;
-                }
-            }
-        }
-        throw new IllegalStateException("No starting point (green cell) found in the maze");
+        this.currentPosition = new Point(1, 1);
+        this.goalPosition = new Point(mazePanel.getMapSize() - 2, mazePanel.getMapSize() - 2);
     }
 
     private boolean isValidMove(int x, int y) {
-        if (x < 0 || x >= maze.getWidth() || y < 0 || y >= maze.getHeight()) {
+        if (x < 0 || y < 0 || x >= mazePanel.getMapSize() || y >= mazePanel.getMapSize()) {
             return false;
         }
-        int color = maze.getRGB(x, y);
-        return color == WHITE || color == RED;
+        return mazePanel.getMaze()[x][y] == Map_Maze.PATH;
     }
 
     public void findShortestPath() {
-        Point goal = null;
         Queue<Point> queue = new LinkedList<>();
         Map<Point, Point> parentMap = new HashMap<>();
-        boolean[][] visited = new boolean[maze.getWidth()][maze.getHeight()];
+        boolean[][] visited = new boolean[mazePanel.getMapSize()][mazePanel.getMapSize()];
 
         queue.add(currentPosition);
         visited[currentPosition.x][currentPosition.y] = true;
 
-        // BFS to find the shortest path
         while (!queue.isEmpty()) {
             Point current = queue.poll();
-            if (maze.getRGB(current.x, current.y) == RED) {
-                goal = current;
-                break;
+            if (current.equals(goalPosition)) {
+                Point step = goalPosition;
+                while (step != null) {
+                    path.add(step);
+                    step = parentMap.get(step);
+                }
+                Collections.reverse((List<Point>) path);
+                return;
             }
 
             for (Point dir : new Point[]{new Point(0, -1), new Point(0, 1), new Point(-1, 0), new Point(1, 0)}) {
@@ -83,42 +61,29 @@ public class Player {
                 }
             }
         }
-
-        if (goal != null) {
-            Point current = goal;
-            while (current != null) {
-                path.add(current);
-                current = parentMap.get(current);
-            }
-            Collections.reverse((List<Point>) path);
-        }
     }
 
     public void startAutoMove() {
         findShortestPath();
-
-        moveTimer = new Timer(MOVE_DELAY, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (!path.isEmpty()) {
-                    visitedPath.add(currentPosition); // Lưu điểm hiện tại
-                    currentPosition = path.poll();
-                    mazePanel.repaint();
-                } else {
-                    ((Timer) e.getSource()).stop();
-                    System.out.println("Congratulations! You've reached the end!");
-                }
+        
+        moveTimer = new Timer(MOVE_DELAY, e -> {
+            if (!path.isEmpty()) {
+                visitedPath.add(currentPosition);
+                currentPosition = path.poll();
+                mazePanel.repaint();
+            } else {
+                ((Timer) e.getSource()).stop();
+                endTime = System.currentTimeMillis()%1000000;
+                System.out.println("Congratulations! You've reached the end!");
+                System.out.println("Time : "+(endTime-startTime)/1000);
             }
         });
+        startTime = System.currentTimeMillis()%1000000;
         moveTimer.start();
     }
 
     public Point getCurrentPosition() {
         return currentPosition;
-    }
-
-    public Color getPlayerColor() {
-        return PLAYER_COLOR;
     }
 
     public List<Point> getVisitedPath() {
