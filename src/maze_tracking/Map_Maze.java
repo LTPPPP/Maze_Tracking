@@ -1,27 +1,21 @@
 package maze_tracking;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.Point;
-import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
 public class Map_Maze extends JPanel {
 
-    public static final int CELL_SIZE = 40;
-    private BufferedImage img;
-    private Player player;
-    public final int BLACK = -16777216;
-    public final int WHITE = -1;
-    public final int GREEN = -5708259;
-    public final int RED = -1237980;
-
-    private static final int[] DX = {0, 0, -1, 1}; // maze move to x
-    private static final int[] DY = {-1, 1, 0, 0}; // maze move to y
     private static final int WALL = 1;
     public static final int PATH = 0;
 
@@ -29,7 +23,21 @@ public class Map_Maze extends JPanel {
     private final int[][] maze;
     private final Random random;
 
+    private JButton startButton;
+    private JButton quitButton;
+    private JButton homeButton;
+    private JButton resetButton;
+
+    private boolean gameStarted = false;
+    private Player player;
+
+    private Timer timer;
+    private JLabel timerLabel;
+    private int elapsedTime;
+
     public Map_Maze(int mapSize) {
+        setLayout(null);
+
         this.mapSize = mapSize + 1;
         this.maze = new int[this.mapSize][this.mapSize];
         this.random = new Random();
@@ -38,6 +46,87 @@ public class Map_Maze extends JPanel {
         }
         generateMaze(1, 1);
         ensureExitPath();
+
+        initUI();
+    }
+
+    private void initUI() {
+        int cellSize = Math.min(getWidth(), getHeight()) / mapSize;
+        int mazeWidth = cellSize * mapSize;
+        int buttonWidth = 100;
+        int buttonHeight = 40;
+        int margin_left = 800;
+        int margin_top = 400;
+
+        // Nút Start
+        startButton = new JButton("Start");
+        startButton.setFont(new Font("Arial", Font.BOLD, 16));
+        startButton.setBounds(mazeWidth + margin_left, margin_top, buttonWidth, buttonHeight);
+        startButton.addActionListener(e -> {
+            if (!gameStarted) {
+                gameStarted = true;
+                startButton.setEnabled(false);
+                if (player != null) {
+                    startTimer();
+                    player.startAutoMove();
+                }
+            }
+        });
+
+        // Nút Quit
+        quitButton = new JButton("Quit");
+        quitButton.setFont(new Font("Arial", Font.BOLD, 16));
+        quitButton.setBounds(mazeWidth + margin_left, margin_top + 60, buttonWidth, buttonHeight);
+        quitButton.addActionListener(e -> {
+            JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
+            if (topFrame != null) {
+                topFrame.dispose();
+            }
+        });
+
+        // Nút Home
+        homeButton = new JButton("Home");
+        homeButton.setFont(new Font("Arial", Font.BOLD, 16));
+        homeButton.setBounds(mazeWidth + margin_left, margin_top + 120, buttonWidth, buttonHeight);
+        homeButton.addActionListener(e -> {
+            JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
+            if (topFrame != null) {
+                topFrame.dispose();
+            }
+            Maze_Tracking main = new Maze_Tracking();
+            main.showConfigurationWindow();
+        });
+
+        // Nút Reset
+        resetButton = new JButton("Reset");
+        resetButton.setFont(new Font("Arial", Font.BOLD, 16));
+        resetButton.setBounds(mazeWidth + margin_left, margin_top + 180, buttonWidth, buttonHeight);
+        resetButton.addActionListener(e -> {
+            gameStarted = false;
+            startButton.setEnabled(true);
+
+            for (int i = 0; i < mapSize; i++) {
+                Arrays.fill(maze[i], WALL);
+            }
+            generateMaze(1, 1);
+            ensureExitPath();
+
+            player = new Player(this);
+
+            repaint();
+            elapsedTime = 0;
+            stopTimer();
+        });
+        timerLabel = new JLabel("Time: 00:00");
+        timerLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        timerLabel.setBounds(mazeWidth + margin_left, margin_top - 40, buttonWidth * 2, buttonHeight);
+        timerLabel.setForeground(Color.BLACK);
+
+        add(timerLabel);
+        add(startButton);
+        add(quitButton);
+        add(homeButton);
+        add(resetButton);
     }
 
     public void generateMaze(int startX, int startY) {
@@ -45,20 +134,18 @@ public class Map_Maze extends JPanel {
         dfs(startX, startY);
     }
 
-    public void setPlayer(Player player) {
-        this.player = player;
-    }
-
     private void dfs(int x, int y) {
+        int[] dx = {0, 0, -1, 1};
+        int[] dy = {-1, 1, 0, 0};
         List<Integer> directions = Arrays.asList(0, 1, 2, 3);
         Collections.shuffle(directions, random);
 
         for (int dir : directions) {
-            int nx = x + DX[dir] * 2;
-            int ny = y + DY[dir] * 2;
+            int nx = x + dx[dir] * 2;
+            int ny = y + dy[dir] * 2;
 
             if (isInBounds(nx, ny) && maze[nx][ny] == WALL) {
-                maze[x + DX[dir]][y + DY[dir]] = PATH;
+                maze[x + dx[dir]][y + dy[dir]] = PATH;
                 maze[nx][ny] = PATH;
                 dfs(nx, ny);
             }
@@ -70,10 +157,11 @@ public class Map_Maze extends JPanel {
     }
 
     private void ensureExitPath() {
-        if (maze[mapSize - 2][mapSize - 2] == WALL) {
-            maze[mapSize - 3][mapSize - 2] = PATH;
-            maze[mapSize - 2][mapSize - 2] = PATH;
-        }
+        maze[mapSize - 2][mapSize - 2] = PATH;
+    }
+
+    public void setPlayer(Player player) {
+        this.player = player;
     }
 
     @Override
@@ -81,14 +169,9 @@ public class Map_Maze extends JPanel {
         super.paintComponent(g);
         int cellSize = Math.min(getWidth(), getHeight()) / mapSize;
 
-        // Vẽ mê cung
         for (int i = 0; i < mapSize; i++) {
             for (int j = 0; j < mapSize; j++) {
-                if (maze[i][j] == WALL) {
-                    g.setColor(Color.BLACK);
-                } else {
-                    g.setColor(Color.WHITE);
-                }
+                g.setColor(maze[i][j] == WALL ? Color.BLACK : Color.WHITE);
                 g.fillRect(j * cellSize, i * cellSize, cellSize, cellSize);
             }
         }
@@ -100,15 +183,7 @@ public class Map_Maze extends JPanel {
         g.fillRect((mapSize - 2) * cellSize, (mapSize - 2) * cellSize, cellSize, cellSize);
 
         if (player != null) {
-            List<Point> visitedPath = player.getVisitedPath();
-            g.setColor(new Color(128, 0, 128, 128)); 
-            for (Point p : visitedPath) {
-                g.fillRect(p.y * cellSize, p.x * cellSize, cellSize, cellSize);
-            }
-
-            Point currentPosition = player.getCurrentPosition();
-            g.setColor(new Color(128, 0, 128)); 
-            g.fillRect(currentPosition.y * cellSize, currentPosition.x * cellSize, cellSize, cellSize);
+            player.paint(g, cellSize);
         }
     }
 
@@ -118,6 +193,23 @@ public class Map_Maze extends JPanel {
 
     public int[][] getMaze() {
         return maze;
+    }
+
+    private void startTimer() {
+        elapsedTime = 0;
+        timer = new Timer(100, e -> {
+            elapsedTime++;
+            int seconds = elapsedTime / 10;
+            int tenths = elapsedTime % 10;
+            timerLabel.setText(String.format("Time: %02d:%d", seconds, tenths));
+        });
+        timer.start();
+    }
+
+    public void stopTimer() {
+        if (timer != null) {
+            timer.stop();
+        }
     }
 
 }

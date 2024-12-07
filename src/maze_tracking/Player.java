@@ -1,7 +1,11 @@
 package maze_tracking;
 
+import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.Point;
 import java.util.*;
+
+import javax.swing.Timer;
 
 import javax.swing.Timer;
 
@@ -12,11 +16,12 @@ public class Player {
     private Map_Maze mazePanel;
     private Queue<Point> path = new LinkedList<>();
     private List<Point> visitedPath = new ArrayList<>();
-    private static final int MOVE_DELAY = 100;
+    private static final int MOVE_DELAY = 10;
     private Timer moveTimer;
 
-    public static float startTime ;
-    public static float endTime ;
+    public static long startTime;
+    public static long endTime;
+
     public Player(Map_Maze mazePanel) {
         this.mazePanel = mazePanel;
         this.currentPosition = new Point(1, 1);
@@ -24,10 +29,8 @@ public class Player {
     }
 
     private boolean isValidMove(int x, int y) {
-        if (x < 0 || y < 0 || x >= mazePanel.getMapSize() || y >= mazePanel.getMapSize()) {
-            return false;
-        }
-        return mazePanel.getMaze()[x][y] == Map_Maze.PATH;
+        return x >= 0 && y >= 0 && x < mazePanel.getMapSize() && y < mazePanel.getMapSize()
+                && mazePanel.getMaze()[x][y] == Map_Maze.PATH;
     }
 
     public void findShortestPath() {
@@ -65,7 +68,7 @@ public class Player {
 
     public void startAutoMove() {
         findShortestPath();
-        
+
         moveTimer = new Timer(MOVE_DELAY, e -> {
             if (!path.isEmpty()) {
                 visitedPath.add(currentPosition);
@@ -73,20 +76,23 @@ public class Player {
                 mazePanel.repaint();
             } else {
                 ((Timer) e.getSource()).stop();
-                endTime = System.currentTimeMillis()%1000000;
+                mazePanel.stopTimer();
+                endTime = System.currentTimeMillis();
                 System.out.println("Congratulations! You've reached the end!");
-                System.out.println("Time : "+(endTime-startTime)/1000);
+                System.out.println("Time: " + (endTime - startTime) / 1000 + " seconds");
             }
         });
-        startTime = System.currentTimeMillis()%1000000;
+        startTime = System.currentTimeMillis();
         moveTimer.start();
     }
 
-    public Point getCurrentPosition() {
-        return currentPosition;
-    }
+    public void paint(Graphics g, int cellSize) {
+        g.setColor(new Color(128, 0, 128, 128));
+        for (Point p : visitedPath) {
+            g.fillRect(p.y * cellSize, p.x * cellSize, cellSize, cellSize);
+        }
 
-    public List<Point> getVisitedPath() {
-        return visitedPath;
+        g.setColor(new Color(128, 0, 128));
+        g.fillRect(currentPosition.y * cellSize, currentPosition.x * cellSize, cellSize, cellSize);
     }
 }

@@ -13,9 +13,9 @@ Maze Tracking is a Java-based game where players can input a maze configuration,
 
 ## Tech Stack
 
-- ![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=java&logoColor=white): Core programming language used for game logic and functionality.
-- ![JavaFX](https://img.shields.io/badge/JavaFX-007396?style=for-the-badge&logo=java&logoColor=white): Used for creating the graphical user interface.
-- ![JUnit](https://img.shields.io/badge/JUnit-25A162?style=for-the-badge&logo=junit5&logoColor=white): For unit testing the game logic.
+![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=java&logoColor=white) : Core programming language used for game logic and functionality.
+![JavaFX](https://img.shields.io/badge/JavaFX-007396?style=for-the-badge&logo=java&logoColor=white) : Used for creating the graphical user interface.
+![JUnit](https://img.shields.io/badge/JUnit-25A162?style=for-the-badge&logo=junit5&logoColor=white) : For unit testing the game logic.
 
 ## Installation
 
