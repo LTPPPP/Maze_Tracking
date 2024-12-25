@@ -3,6 +3,10 @@ package maze_tracking;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Window;
+import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -22,114 +26,184 @@ public class Map_Maze extends JPanel {
     private final int mapSize;
     private final int[][] maze;
     private final Random random;
+    private BufferedImage buffer;
 
-    private JButton startButton;
-    private JButton quitButton;
-    private JButton homeButton;
-    private JButton resetButton;
-
-    private boolean gameStarted = false;
-    private Player player;
-
+    private JButton startButton, quitButton, homeButton, resetButton;
     private Timer timer;
     private JLabel timerLabel;
     private int elapsedTime;
+    private boolean gameStarted = false;
+    private Player player;
 
     public Map_Maze(int mapSize) {
         setLayout(null);
-
         this.mapSize = mapSize + 1;
         this.maze = new int[this.mapSize][this.mapSize];
         this.random = new Random();
-        for (int i = 0; i < this.mapSize; i++) {
-            Arrays.fill(maze[i], WALL);
-        }
-        generateMaze(1, 1);
-        ensureExitPath();
 
+        initializeMaze();
         initUI();
     }
 
-    private void initUI() {
-        int cellSize = Math.min(getWidth(), getHeight()) / mapSize;
-        int mazeWidth = cellSize * mapSize;
-        int buttonWidth = 100;
-        int buttonHeight = 40;
-        int margin_left = 800;
-        int margin_top = 400;
-
-        // Nút Start
-        startButton = new JButton("Start");
-        startButton.setFont(new Font("Arial", Font.BOLD, 16));
-        startButton.setBounds(mazeWidth + margin_left, margin_top, buttonWidth, buttonHeight);
-        startButton.addActionListener(e -> {
-            if (!gameStarted) {
-                gameStarted = true;
-                startButton.setEnabled(false);
-                if (player != null) {
-                    startTimer();
-                    player.startAutoMove();
-                }
-            }
-        });
-
-        // Nút Quit
-        quitButton = new JButton("Quit");
-        quitButton.setFont(new Font("Arial", Font.BOLD, 16));
-        quitButton.setBounds(mazeWidth + margin_left, margin_top + 60, buttonWidth, buttonHeight);
-        quitButton.addActionListener(e -> {
-            JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
-            if (topFrame != null) {
-                topFrame.dispose();
-            }
-        });
-
-        // Nút Home
-        homeButton = new JButton("Home");
-        homeButton.setFont(new Font("Arial", Font.BOLD, 16));
-        homeButton.setBounds(mazeWidth + margin_left, margin_top + 120, buttonWidth, buttonHeight);
-        homeButton.addActionListener(e -> {
-            JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
-            if (topFrame != null) {
-                topFrame.dispose();
-            }
-            Maze_Tracking main = new Maze_Tracking();
-            main.showConfigurationWindow();
-        });
-
-        // Nút Reset
-        resetButton = new JButton("Reset");
-        resetButton.setFont(new Font("Arial", Font.BOLD, 16));
-        resetButton.setBounds(mazeWidth + margin_left, margin_top + 180, buttonWidth, buttonHeight);
-        resetButton.addActionListener(e -> {
-            gameStarted = false;
-            startButton.setEnabled(true);
-
-            for (int i = 0; i < mapSize; i++) {
-                Arrays.fill(maze[i], WALL);
-            }
-            generateMaze(1, 1);
-            ensureExitPath();
-
-            player = new Player(this);
-
-            repaint();
-            elapsedTime = 0;
-            stopTimer();
-        });
-        timerLabel = new JLabel("Time: 00:00");
-        timerLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        timerLabel.setBounds(mazeWidth + margin_left, margin_top - 40, buttonWidth * 2, buttonHeight);
-        timerLabel.setForeground(Color.BLACK);
-
-        add(timerLabel);
-        add(startButton);
-        add(quitButton);
-        add(homeButton);
-        add(resetButton);
+    private void initializeMaze() {
+        for (int[] row : maze) {
+            Arrays.fill(row, WALL);
+        }
+        generateMaze(1, 1);
+        ensureExitPath();
     }
 
-    public void generateMaze(int startX, int startY) {
+    private void initUI() {
+        setupButtons();
+        setupTimer();
+    }
+
+    private void setupButtons() {
+        int buttonWidth = 100;
+        int buttonHeight = 40;
+        int marginLeft = 800;
+        int marginTop = 400;
+
+        startButton = createGameButton("Start Auto", marginLeft, marginTop, e -> startGame());
+        quitButton = createGameButton("Quit", marginLeft, marginTop + 60, e -> quitGame());
+        homeButton = createGameButton("Home", marginLeft, marginTop + 120, e -> goHome());
+        resetButton = createGameButton("Reset", marginLeft, marginTop + 180, e -> resetGame());
+
+        Arrays.asList(startButton, quitButton, homeButton, resetButton)
+                .forEach(this::add);
+    }
+
+    private JButton createGameButton(String text, int x, int y, ActionListener action) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Arial", Font.BOLD, 16));
+        button.setBounds(x, y, 100, 40);
+        button.addActionListener(action);
+        return button;
+    }
+
+    private void setupTimer() {
+        timerLabel = new JLabel("Time: 00:00");
+        timerLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        timerLabel.setBounds(800, 360, 200, 40);
+        add(timerLabel);
+    }
+
+    // Game control methods
+    private void startGame() {
+        if (!gameStarted) {
+            gameStarted = true;
+            startButton.setEnabled(false);
+            if (player != null) {
+                startTimer();
+                player.startAutoMove();
+            }
+        }
+    }
+
+    private void quitGame() {
+        Window window = SwingUtilities.getWindowAncestor(this);
+        if (window instanceof JFrame) {
+            window.dispose();
+            System.exit(0);
+        }
+    }
+
+    private void goHome() {
+        Window window = SwingUtilities.getWindowAncestor(this);
+        window.dispose();
+        new Maze_Tracking().showConfigurationWindow();
+    }
+
+    private void resetGame() {
+        gameStarted = false;
+        startButton.setEnabled(true);
+        initializeMaze();
+        player = new Player(this);
+        elapsedTime = 0;
+        stopTimer();
+        repaint();
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        if (buffer == null || buffer.getWidth() != getWidth()
+                || buffer.getHeight() != getHeight()) {
+            buffer = new BufferedImage(getWidth(), getHeight(),
+                    BufferedImage.TYPE_INT_ARGB);
+        }
+
+        Graphics2D g2d = buffer.createGraphics();
+        super.paintComponent(g2d);
+        drawMaze(g2d);
+        if (player != null) {
+            player.paint(g2d, getCellSize());
+        }
+        g2d.dispose();
+
+        g.drawImage(buffer, 0, 0, null);
+    }
+
+    private void drawMaze(Graphics2D g) {
+        int cellSize = getCellSize();
+
+        for (int i = 0; i < mapSize; i++) {
+            for (int j = 0; j < mapSize; j++) {
+                g.setColor(maze[i][j] == WALL ? Color.BLACK : Color.WHITE);
+                g.fillRect(j * cellSize, i * cellSize, cellSize, cellSize);
+            }
+        }
+
+        // Draw start and end points
+        g.setColor(Color.GREEN);
+        g.fillRect(cellSize, cellSize, cellSize, cellSize);
+
+        g.setColor(Color.RED);
+        g.fillRect((mapSize - 2) * cellSize, (mapSize - 2) * cellSize,
+                cellSize, cellSize);
+    }
+
+    private int getCellSize() {
+        return Math.min(getWidth(), getHeight()) / mapSize;
+    }
+
+    // Getter methods
+    public int getMapSize() {
+        return mapSize;
+    }
+
+    public int[][] getMaze() {
+        return maze;
+    }
+
+    // Timer methods
+    private void startTimer() {
+        elapsedTime = 0;
+        timer = new Timer(100, e -> updateTimer());
+        timer.start();
+    }
+
+    private void updateTimer() {
+        elapsedTime++;
+        int seconds = elapsedTime / 10;
+        int tenths = elapsedTime % 10;
+        timerLabel.setText(String.format("Time: %02d:%d", seconds, tenths));
+    }
+
+    public void stopTimer() {
+        if (timer != null) {
+            timer.stop();
+        }
+    }
+
+    public void cleanup() {
+        stopTimer();
+        if (player != null) {
+            player.cleanup();
+        }
+    }
+
+    // Maze generation methods
+    private void generateMaze(int startX, int startY) {
         maze[startX][startY] = PATH;
         dfs(startX, startY);
     }
@@ -163,53 +237,4 @@ public class Map_Maze extends JPanel {
     public void setPlayer(Player player) {
         this.player = player;
     }
-
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        int cellSize = Math.min(getWidth(), getHeight()) / mapSize;
-
-        for (int i = 0; i < mapSize; i++) {
-            for (int j = 0; j < mapSize; j++) {
-                g.setColor(maze[i][j] == WALL ? Color.BLACK : Color.WHITE);
-                g.fillRect(j * cellSize, i * cellSize, cellSize, cellSize);
-            }
-        }
-
-        g.setColor(Color.GREEN);
-        g.fillRect(cellSize, cellSize, cellSize, cellSize);
-
-        g.setColor(Color.RED);
-        g.fillRect((mapSize - 2) * cellSize, (mapSize - 2) * cellSize, cellSize, cellSize);
-
-        if (player != null) {
-            player.paint(g, cellSize);
-        }
-    }
-
-    public int getMapSize() {
-        return mapSize;
-    }
-
-    public int[][] getMaze() {
-        return maze;
-    }
-
-    private void startTimer() {
-        elapsedTime = 0;
-        timer = new Timer(100, e -> {
-            elapsedTime++;
-            int seconds = elapsedTime / 10;
-            int tenths = elapsedTime % 10;
-            timerLabel.setText(String.format("Time: %02d:%d", seconds, tenths));
-        });
-        timer.start();
-    }
-
-    public void stopTimer() {
-        if (timer != null) {
-            timer.stop();
-        }
-    }
-
 }
