@@ -82,8 +82,8 @@ public class Map_Maze extends JPanel {
     }
 
     private void saveMazeAsImage() {
-        int width = getWidth()-225;
-        int height = getHeight()-50;
+        int width = getWidth();
+        int height = getHeight();
 
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = image.createGraphics();
@@ -92,8 +92,7 @@ public class Map_Maze extends JPanel {
         g2d.dispose();
 
         try {
-            Integer time  = LocalDateTime.now().getNano();
-            File outputFile = new File(time+".png");
+            File outputFile = new File("maze.png");
             ImageIO.write(image, "png", outputFile);
             System.out.println("Mê cung đã được lưu: " + outputFile.getAbsolutePath());
         } catch (IOException e) {
