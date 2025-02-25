@@ -7,10 +7,15 @@ import java.awt.Graphics2D;
 import java.awt.Window;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -28,7 +33,7 @@ public class Map_Maze extends JPanel {
     private final Random random;
     private BufferedImage buffer;
 
-    private JButton startButton, quitButton, homeButton, resetButton;
+    private JButton startButton;
     private Timer timer;
     private JLabel timerLabel;
     private int elapsedTime;
@@ -49,7 +54,7 @@ public class Map_Maze extends JPanel {
         for (int[] row : maze) {
             Arrays.fill(row, WALL);
         }
-        generateMaze(1, 1);
+        generateMaze();
         ensureExitPath();
     }
 
@@ -65,12 +70,35 @@ public class Map_Maze extends JPanel {
         int marginTop = 400;
 
         startButton = createGameButton("Start Auto", marginLeft, marginTop, e -> startGame());
-        quitButton = createGameButton("Quit", marginLeft, marginTop + 60, e -> quitGame());
-        homeButton = createGameButton("Home", marginLeft, marginTop + 120, e -> goHome());
-        resetButton = createGameButton("Reset", marginLeft, marginTop + 180, e -> resetGame());
+        JButton quitButton = createGameButton("Quit", marginLeft, marginTop + 60, e -> quitGame());
+        JButton homeButton = createGameButton("Home", marginLeft, marginTop + 120, e -> goHome());
+        JButton resetButton = createGameButton("Reset", marginLeft, marginTop + 180, e -> resetGame());
+        JButton saveButton = createGameButton("Save PNG", marginLeft, marginTop + 240, e -> saveMazeAsImage());
+        add(saveButton);
+
 
         Arrays.asList(startButton, quitButton, homeButton, resetButton)
                 .forEach(this::add);
+    }
+
+    private void saveMazeAsImage() {
+        int width = getWidth()-225;
+        int height = getHeight()-50;
+
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = image.createGraphics();
+
+        paintComponent(g2d); // Vẽ mê cung lên BufferedImage
+        g2d.dispose();
+
+        try {
+            Integer time  = LocalDateTime.now().getNano();
+            File outputFile = new File(time+".png");
+            ImageIO.write(image, "png", outputFile);
+            System.out.println("Mê cung đã được lưu: " + outputFile.getAbsolutePath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private JButton createGameButton(String text, int x, int y, ActionListener action) {
@@ -139,7 +167,6 @@ public class Map_Maze extends JPanel {
             player.paint(g2d, getCellSize());
         }
         g2d.dispose();
-
         g.drawImage(buffer, 0, 0, null);
     }
 
@@ -203,9 +230,9 @@ public class Map_Maze extends JPanel {
     }
 
     // Maze generation methods
-    private void generateMaze(int startX, int startY) {
-        maze[startX][startY] = PATH;
-        dfs(startX, startY);
+    private void generateMaze() {
+        maze[1][1] = PATH;
+        dfs(1, 1);
     }
 
     private void dfs(int x, int y) {

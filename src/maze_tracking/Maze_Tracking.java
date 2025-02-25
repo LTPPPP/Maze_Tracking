@@ -77,9 +77,9 @@ public class Maze_Tracking {
         JPanel buttonPanel = new JPanel(new GridLayout(3, 1, 10, 10));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
 
-        JButton startButton = createStyledButton("Start Game", new Color(100, 200, 100));
-        JButton aboutButton = createStyledButton("About Us", new Color(100, 150, 250));
-        JButton quitButton = createStyledButton("Quit", new Color(250, 100, 100));
+        JButton startButton = createStyledButton("Start Game", new Color(0, 252, 0));
+        JButton aboutButton = createStyledButton("About Us", new Color(0, 85, 255));
+        JButton quitButton = createStyledButton("Quit", new Color(255, 0, 0));
 
         startButton.addActionListener(e -> {
             int size = (Integer) sizeSpinner.getValue(); // Use the sizeSpinner field
@@ -124,11 +124,14 @@ public class Maze_Tracking {
 
     private void showAboutDialog() {
         JOptionPane.showMessageDialog(null,
-                "Maze Tracking Game\nVersion 1.0\n\n" +
-                        "Developed by LamTanPhat\n" +
-                        "A challenging maze navigation game\n" +
-                        "Features automatic maze generation\n" +
-                        "and auto-solve game functionality.",
+                """
+                        Maze Tracking Game
+                        Version 1.0
+                        
+                        Developed by LamTanPhat
+                        A challenging maze navigation game
+                        Features automatic maze generation
+                        and auto-solve game functionality.""",
                 "About Maze Tracking",
                 JOptionPane.INFORMATION_MESSAGE);
     }

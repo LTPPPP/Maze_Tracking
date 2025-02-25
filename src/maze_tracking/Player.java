@@ -18,8 +18,8 @@ public class Player {
     private Point currentPosition;
     private final Point goalPosition;
     private final Map_Maze mazePanel;
-    private Queue<Point> path;
-    private List<Point> visitedPath;
+    private final Queue<Point> path;
+    private final List<Point> visitedPath;
     private Timer moveTimer;
     private static final int MOVE_DELAY = 10;
     private long startTime;
